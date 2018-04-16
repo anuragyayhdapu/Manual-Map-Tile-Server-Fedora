@@ -80,7 +80,7 @@ $ cmake ..
 $ make
 $ sudo make install
 ```
-### 4. Install Mapnik
+## 4. Install Mapnik
 *mapnik does the actual rendering of map <br /><br />*
 install mapnik from fedora repositories
 ```sh
@@ -287,7 +287,7 @@ change Listen to following value
 change ServerName to following value
 > ServerName PCIpAddress:80
 
-in '<Directory>' tag, change '# Require all denied' to 
+in '&lt;Directory'&gt; tag, change '# Require all denied' to 
 >Require all granted
 
 open port in firewall
