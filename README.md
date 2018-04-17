@@ -1,5 +1,5 @@
-# Manually building a map tile server (Fedora 27)
-Manually building a Map tile server stack using **[Openstreet map data](https://www.openstreetmap.org/)** & **[Leaflet](http://leafletjs.com/)**. On Fedora 27.
+
+# Manually building a Map tile server stack using **[Openstreet map data](https://www.openstreetmap.org/)** & **[Leaflet](http://leafletjs.com/)**. (Fedora 27)
 
 ## 1. Setup Dependencies
 
