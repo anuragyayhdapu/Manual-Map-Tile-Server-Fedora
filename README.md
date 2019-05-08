@@ -312,16 +312,21 @@ L.tileLayer('http://127.0.0.1/osm_tiles/{z}/{x}/{y}.png', {
 make sure renderd is running <br />
 open **map-client.html** in browser, and world map should appear
 
-## 11. Add SELinux policy for Apache to access renderd socket
+## 11. Add a SELinux module for Apache to access renderd socket
 
 Suppose you attempted to load the map without disabling SELinux, there would be a log line that is useful.  
 First, try to find that line:
 ```sh
 $ sudo tail -n100 /var/log/audit/audit.log | grep AVC
 ```
-If something is found, use it
+If something is found, use it to generate and install a module that allows Apache to connect to Unix stream socket
 ```sh
 $ sudo tail -n100 /var/log/audit/audit.log | grep AVC | audit2allow -M httpd-connectto-streamsock
+$ sudo semodule -i httpd-connectto-streamsock.pp
+```
+Check if the module is installed
+```sh
+$ sudo semodule -l | grep httpd-connectto-streamsock
 ```
 
 ## 12. TODO (Remaining)
