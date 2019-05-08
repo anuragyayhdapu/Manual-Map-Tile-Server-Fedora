@@ -52,16 +52,16 @@ create gis database <br />
 (*replace 'renderaccount' with **your logged in username***)
 ```
 $ sudo -u postgres -i
-	$ createuser renderaccount
-	$ createdb -E UTF8 -O renderaccount gis
-	$ psql
-		# \c gis
-		# CREATE EXTENSION postgis;
-		# CREATE EXTENSION hstore;
-		# ALTER TABLE geometry_columns OWNER TO renderaccount;
-		# ALTER TABLE spatial_ref_sys OWNER TO renderaccount;
-		# \q
-	$ exit
+$ createuser renderaccount
+$ createdb -E UTF8 -O renderaccount gis
+$ psql
+	# \c gis
+	# CREATE EXTENSION postgis;
+	# CREATE EXTENSION hstore;
+	# ALTER TABLE geometry_columns OWNER TO renderaccount;
+	# ALTER TABLE spatial_ref_sys OWNER TO renderaccount;
+	# \q
+$ exit
 ```
 ## 3. Install osm2pqsql
 *osm2pqsql converts & transfers map's pbf data files into gis database <br /><br />*
@@ -80,6 +80,10 @@ $ cmake ..
 $ make
 $ sudo make install
 ```
+or just install it using dnf
+```sh
+$ sudo dnf install osm2pgsql
+```
 ## 4. Install Mapnik
 *mapnik does the actual rendering of map <br /><br />*
 install mapnik from fedora repositories
@@ -87,7 +91,7 @@ install mapnik from fedora repositories
 $ sudo dnf install gdalcpp-devel mapnik-devel mapnik-utils python-mapnik fribidi-devel \
   libtool-ltdl-devel python2-devel libpqxx-devel
 ```
-check successfull installation
+check successful installation
 ```sh
 $ python
 ```
@@ -95,11 +99,11 @@ $ python
 >>> import mapnik
 >>> 
 ```
-if everything was successfull, **import mapnik** should return nothing, then exit python
+if everything was successful, **import mapnik** should return nothing, then exit python
 ```python
 >>> exit()
 ```
-## 5. Install mod_tile and rendered
+## 5. Install mod_tile and renderd
 *mod_tile & renderd are Apache modules that serve map tiles <br /><br />*
 install mod_tile from source
 ```sh
@@ -159,7 +163,7 @@ eg: **'/usr/lib64/mapnik/input'** , copy that returned path and replace it with 
 
 ## 6. Stylesheet configuration 
 *stylesheet defines how your map looks <br /><br />*
-download shtylesheet
+download stylesheet
 ```sh
 $ cd ~/src
 $ git clone git://github.com/gravitystorm/openstreetmap-carto.git
@@ -272,7 +276,7 @@ go ahead, and open **map-client.html** in browser, you should see a world map, w
 visit the country you downloaded, in this case Nepal
 
 
-## 10. Expose Apahe Over Network
+## 10. Expose Apache Over Network
 
 to visit the map from any other server, we need to expose apache over network <br />
 
@@ -308,29 +312,32 @@ L.tileLayer('http://127.0.0.1/osm_tiles/{z}/{x}/{y}.png', {
 make sure renderd is running <br />
 open **map-client.html** in browser, and world map should appear
 
-## 11. TODO (Remaining)
+## 11. Add SELinux policy for Apache to access renderd socket
 
-1. Add permanent exception in SELinux for Apache to access renderd socket
-2. Configure renderd as a service to run on startup & background
-3. Change Fedora to have a static ip-address
+Suppose you attempted to load the map without disabling SELinux, there would be a log line that is useful.  
+First, try to find that line:
+```sh
+$ sudo tail -n100 /var/log/audit/audit.log | grep AVC
+```
+If something is found, use it
+```sh
+$ sudo tail -n100 /var/log/audit/audit.log | grep AVC | audit2allow -M httpd-connectto-streamsock
+```
+
+## 12. TODO (Remaining)
+
+1. Configure renderd as a service to run on startup & background
+2. Change Fedora to have a static ip-address
 
 ## Special Notes
 
 1. In the current configuration, we haven't created renderd as a service, as a result every time you power on your map-tile-server, you have to perform following steps before running renderd:
-- create renderd folder and change it's permission <br />
+- create renderd folder and change its permission <br />
   (*replace 'renderaccount' with **your logged in username***)
     ```sh
     $ sudo mkdir /var/run/renderd
     $ sudo chown renderaccount /var/run/renderd
     ```
-- temporarily disable SELinux
-  ```sh
-  $ sudo setenforce 0
-  ```
-- reload Apache
-  ```sh
-  $ sudo systemctl reload httpd
-  ```
 - then, start renderd 
   ```sh
   $ renderd -f
