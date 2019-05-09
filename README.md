@@ -329,25 +329,66 @@ Check if the module is installed
 $ sudo semodule -l | grep httpd-connectto-streamsock
 ```
 
-## 12. TODO (Remaining)
+## 12. Configure renderd as a service
 
-1. Configure renderd as a service to run on startup & background
-2. Change Fedora to have a static ip-address
+(just a workaround)
+
+- Write a script to create the renderd folder
+```sh
+$ sudo nano /usr/local/bin/renderd-path
+```
+with this content (*replace 'renderaccount' with **your logged in username***)
+>#!/bin/bash  
+>mkdir /var/run/renderd  
+>chown renderaccount /var/run/renderd  
+
+- Create a service to run this script at startup
+```sh
+$ sudo nano /etc/systemd/system/renderd-path.service
+```
+with this content
+>[Unit]  
+>Description=renderd path service  
+>After=postgresql.target  
+>  
+>[Service]  
+>Type=simple  
+>User=root  
+>ExecStart=/usr/local/bin/renderd-path  
+>  
+>[Install]  
+>WantedBy=multi-user.target
+
+- Create a service to run renderd after the renderd-path service
+```sh
+$ sudo nano /etc/systemd/system/renderd.service
+```
+with this content (*replace 'renderaccount' with **your logged in username***)
+>[Unit]  
+>Description=renderd service  
+>After=renderd-path.service  
+>  
+>[Service]  
+>Type=forking  
+>User=renderaccount  
+>ExecStart=/usr/local/bin/renderd  
+>Restart=on-failure  
+>  
+>[Install]  
+>WantedBy=multi-user.target
+
+- Start and enable 2 services
+```sh
+$ sudo systemctl start renderd-path renderd
+$ sudo systemctl enable renderd-path renderd
+```
+
+## 13. TODO (Remaining)
+
+1. Change Fedora to have a static ip-address
 
 ## Special Notes
 
-1. In the current configuration, we haven't created renderd as a service, as a result every time you power on your map-tile-server, you have to perform following steps before running renderd:
-- create renderd folder and change its permission <br />
-  (*replace 'renderaccount' with **your logged in username***)
-    ```sh
-    $ sudo mkdir /var/run/renderd
-    $ sudo chown renderaccount /var/run/renderd
-    ```
-- then, start renderd 
-  ```sh
-  $ renderd -f
-  ```
+1. This guide is heavily insipred by [Manually building a tile server (Ubuntu 16.04.2 LTS)](https://switch2osm.org/manually-building-a-tile-server-16-04-2-lts), and they have explained each step in much more detail. So, if you get stuck you should definitely check it out. Infact that guide is so good, you should check it out anyway.
 
-2. This guide is heavily insipred by [Manually building a tile server (Ubuntu 16.04.2 LTS)](https://switch2osm.org/manually-building-a-tile-server-16-04-2-lts), and they have explained each step in much more detail. So, if you get stuck you should definitely check it out. Infact that guide is so good, you should check it out anyway.
-
-3. If you know how to do any of the step in *TODO* list, please contribute.
+2. If you know how to do any of the step in *TODO* list, please contribute.
