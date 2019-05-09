@@ -331,45 +331,23 @@ $ sudo semodule -l | grep httpd-connectto-streamsock
 
 ## 12. Configure renderd as a service
 
-(just a workaround)
+- To create the /run/renderd folder (/var/run is just a symlink to /run), create the file /etc/tmpfiles.d/renderd.conf and add this line to that file:  
+(*replace 'renderaccount' with **your logged in username***)
+>d /run/renderd 0755 renderaccount renderaccount -
 
-- Write a script to create the renderd folder
-```sh
-$ sudo nano /usr/local/bin/renderd-path
-```
-with this content (*replace 'renderaccount' with **your logged in username***)
->#!/bin/bash  
->mkdir /var/run/renderd  
->chown renderaccount /var/run/renderd  
-
-- Create a service to run this script at startup
-```sh
-$ sudo nano /etc/systemd/system/renderd-path.service
-```
-with this content
->[Unit]  
->Description=renderd path service  
->After=postgresql.target  
->  
->[Service]  
->Type=simple  
->User=root  
->ExecStart=/usr/local/bin/renderd-path  
->  
->[Install]  
->WantedBy=multi-user.target
-
-- Create a service to run renderd after the renderd-path service
+- Create a service to run renderd at startup
 ```sh
 $ sudo nano /etc/systemd/system/renderd.service
 ```
-with this content (*replace 'renderaccount' with **your logged in username***)
+add this content to that file (*replace 'renderaccount' with **your logged in username***)
 >[Unit]  
 >Description=renderd service  
->After=renderd-path.service  
+>After=systemd-tmpfiles-setup.service postgresql.target  
+>Requires=systemd-tmpfiles-setup.service  
 >  
 >[Service]  
 >Type=forking  
+>PIDFile=/run/renderd/renderd.pid  
 >User=renderaccount  
 >ExecStart=/usr/local/bin/renderd  
 >Restart=on-failure  
@@ -377,10 +355,10 @@ with this content (*replace 'renderaccount' with **your logged in username***)
 >[Install]  
 >WantedBy=multi-user.target
 
-- Start and enable 2 services
+- Start and enable the service
 ```sh
-$ sudo systemctl start renderd-path renderd
-$ sudo systemctl enable renderd-path renderd
+$ sudo systemctl start renderd
+$ sudo systemctl enable renderd
 ```
 
 ## 13. TODO (Remaining)
