@@ -361,7 +361,28 @@ $ sudo systemctl start renderd
 $ sudo systemctl enable renderd
 ```
 
-## 13. TODO (Remaining)
+## 13. Upgrade from Fedora 29 to 30
+
+Fedora 30 comes with PostgreSQL 11 and PostGIS 2.5, but postgresql upgrade and renderd still link to the old PostGIS 2.4 shared object.  
+We need to make symlinks to shared objects of version 2.5 with names of version 2.4 and place some shared objects to the right directories.
+
+Running `postgresql-setup upgrade` as instructed [here](https://docs.fedoraproject.org/en-US/quick-docs/postgresql/index.html) would give an error that $libdir/postgis-2.4 is not found.  
+Run `pg_config --libdir` to get the libdir path. Let's call it \<libdir\>.  
+*Commands from here need to be run as root.*
+- Make symlinks:
+```sh
+$ ln -s <libdir>/pgsql/postgis-2.5.so <libdir>/pgsql/postgis-2.4.so
+$ ln -s <libdir>/pgsql/rtpostgis-2.5.so <libdir>/pgsql/rtpostgis-2.4.so
+```
+- Put files into places:  
+Download PostGIS 2.4 and PROJ 4.9 packages for Fedora 29. The x64 versions are here: [PostGIS](https://fedora.pkgs.org/29/fedora-x86_64/postgis-2.4.3-5.fc29.x86_64.rpm.html), [PROJ](https://fedora.pkgs.org/29/fedora-x86_64/proj-4.9.3-6.fc29.x86_64.rpm.html). Extract both, and run from where they are extracted:
+```sh
+$ cp usr/lib64/libproj.so.12* /lib64/ # or equivalent directory
+$ cp usr/lib64/pgsql/*postgis-2.4.so <libdir>/pgsql/postgresql-10/lib/
+```
+- Running postgresql upgrade should succeed now.
+
+## 14. TODO (Remaining)
 
 1. Change Fedora to have a static ip-address
 
